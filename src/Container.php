@@ -8,7 +8,6 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
-use ReflectionException;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Takaram\NanoDi\Exception\ContainerException;
@@ -17,6 +16,9 @@ use Throwable;
 
 class Container implements ContainerInterface
 {
+    /**
+     * @param array<string, string> $map
+     */
     public function __construct(private array $map = []) {}
 
     public function has(string $id): bool
@@ -58,11 +60,11 @@ class Container implements ContainerInterface
             }
         }
 
-        try {
-            $reflectionClass = new ReflectionClass($id);
-        } catch (ReflectionException $e) {
-            throw new NotFoundException(sprintf('No entry found for "%s".', $id), 0, $e);
+        if (!class_exists($id) && !interface_exists($id)) {
+            throw new NotFoundException(sprintf('No entry found for "%s".', $id));
         }
+
+        $reflectionClass = new ReflectionClass($id);
 
         if (!$reflectionClass->isInstantiable()) {
             throw new ContainerException(sprintf('Entry "%s" is not instantiable.', $id));
@@ -70,7 +72,7 @@ class Container implements ContainerInterface
 
         $constructor = $reflectionClass->getConstructor();
         if ($constructor === null) {
-            return $this->instantiate($reflectionClass->getName());
+            return $this->instantiate($id);
         }
 
         $args = [];
@@ -78,7 +80,7 @@ class Container implements ContainerInterface
             $args[] = $this->resolveParameter($id, $param, $resolving);
         }
 
-        return $this->instantiate($reflectionClass->getName(), $args);
+        return $this->instantiate($id, $args);
     }
 
     /**
@@ -96,11 +98,11 @@ class Container implements ContainerInterface
             return $this->canResolve($this->map[$id], $resolving);
         }
 
-        try {
-            $reflectionClass = new ReflectionClass($id);
-        } catch (ReflectionException) {
+        if (!class_exists($id) && !interface_exists($id)) {
             return false;
         }
+
+        $reflectionClass = new ReflectionClass($id);
 
         return $reflectionClass->isInstantiable();
     }
@@ -131,6 +133,9 @@ class Container implements ContainerInterface
         throw new ContainerException(sprintf('Unable to resolve parameter "$%s" of "%s".', $parameter->getName(), $id));
     }
 
+    /**
+     * @param list<mixed> $args
+     */
     private function instantiate(string $id, array $args = []): object
     {
         try {
