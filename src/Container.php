@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Takaram\NanoDi;
@@ -16,9 +17,7 @@ use Throwable;
 
 class Container implements ContainerInterface
 {
-    public function __construct(private array $map = [])
-    {
-    }
+    public function __construct(private array $map = []) {}
 
     public function has(string $id): bool
     {
