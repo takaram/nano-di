@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - &checkout_step
+        name: Checkout repository
+        uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+
+      - &setup_php_fixed_step
+        name: Setup PHP
+        uses: shivammathur/setup-php@2.37.0
+        with:
+          php-version: '8.5'
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@4.0.0
+
+      - name: Check coding style
+        run: composer cs:check
+
+  phpstan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - *checkout_step
+      - *setup_php_fixed_step
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@4.0.0
+
+      - name: Run static analysis
+        run: composer phpstan
+
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '8.3'
+          - '8.4'
+          - '8.5'
+    steps:
+      - *checkout_step
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@2.37.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@4.0.0
+
+      - name: Run tests
+        run: composer test
