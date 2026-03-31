@@ -22,16 +22,7 @@ class Container implements ContainerInterface
 
     public function has(string $id): bool
     {
-        if (isset($this->map[$id])) {
-            return true;
-        }
-
-        try {
-            new ReflectionClass($id);
-            return true;
-        } catch (\ReflectionException) {
-            return false;
-        }
+        return $this->canResolve($id, []);
     }
 
     /**
@@ -89,6 +80,30 @@ class Container implements ContainerInterface
         }
 
         return $this->instantiate($reflectionClass->getName(), $args);
+    }
+
+    /**
+     * @param list<string> $resolving
+     */
+    private function canResolve(string $id, array $resolving): bool
+    {
+        if (in_array($id, $resolving, true)) {
+            return false;
+        }
+
+        $resolving[] = $id;
+
+        if (isset($this->map[$id])) {
+            return $this->canResolve($this->map[$id], $resolving);
+        }
+
+        try {
+            $reflectionClass = new ReflectionClass($id);
+        } catch (ReflectionException) {
+            return false;
+        }
+
+        return $reflectionClass->isInstantiable();
     }
 
     /**

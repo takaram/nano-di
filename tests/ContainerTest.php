@@ -43,6 +43,41 @@ final class ContainerTest extends TestCase
         $this->assertFalse($container->has('Takaram\\NanoDi\\Tests\\Fixture\\UnknownClass'));
     }
 
+    public function testHasReturnsFalseForNonInstantiableEntryWithoutMap(): void
+    {
+        $container = new Container();
+
+        $this->assertFalse($container->has(TestServiceContract::class));
+    }
+
+    public function testHasReturnsFalseForMappedUnknownClass(): void
+    {
+        $container = new Container([
+            TestServiceContract::class => 'Takaram\\NanoDi\\Tests\\Fixture\\UnknownClass',
+        ]);
+
+        $this->assertFalse($container->has(TestServiceContract::class));
+    }
+
+    public function testHasReturnsFalseForSelfReferencingMap(): void
+    {
+        $container = new Container([
+            'service' => 'service',
+        ]);
+
+        $this->assertFalse($container->has('service'));
+    }
+
+    public function testHasReturnsFalseForCircularMap(): void
+    {
+        $container = new Container([
+            'service.a' => 'service.b',
+            'service.b' => 'service.a',
+        ]);
+
+        $this->assertFalse($container->has('service.a'));
+    }
+
     public function testGetResolvesMappedClass(): void
     {
         $container = new Container([
