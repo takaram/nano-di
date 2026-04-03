@@ -4,3 +4,6 @@
 /vendor/
 /.php-cs-fixer.cache
 /.phpunit.cache/
+
+# Don't commit composer.lock, as it is only relevant for applications, not libraries
+/composer.lock
