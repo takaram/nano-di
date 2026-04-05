@@ -1,0 +1,66 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        ":approveMajorUpdates",
+        "docker:pinDigests",
+        "helpers:pinGitHubActionDigests"
+    ],
+    "labels": [
+        "dependencies"
+    ],
+    "enabledManagers": [
+        "composer",
+        "github-actions"
+    ],
+    "prHourlyLimit": 2,
+    "prConcurrentLimit": 5,
+    "packageRules": [
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "matchDepTypes": [
+                "require"
+            ],
+            "rangeStrategy": "widen"
+        },
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "matchDepTypes": [
+                "require-dev"
+            ],
+            "rangeStrategy": "replace"
+        },
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "matchPackageNames": [
+                "phpunit/phpunit"
+            ],
+            "matchDepTypes": [
+                "require-dev"
+            ],
+            "rangeStrategy": "widen"
+        },
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "composer dependencies"
+        },
+        {
+            "matchManagers": [
+                "github-actions"
+            ],
+            "groupName": "github actions"
+        }
+    ]
+}
