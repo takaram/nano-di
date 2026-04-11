@@ -90,6 +90,40 @@ final class ContainerTest extends TestCase
         $this->assertInstanceOf(TestService::class, $service);
     }
 
+    public function testGetReturnsSameInstanceForResolvedClass(): void
+    {
+        $container = new Container();
+
+        $first = $container->get(TestDependency::class);
+        $second = $container->get(TestDependency::class);
+
+        $this->assertSame($first, $second);
+    }
+
+    public function testGetReturnsSameInstanceForMappedClass(): void
+    {
+        $container = new Container([
+            TestServiceContract::class => TestService::class,
+        ]);
+
+        $first = $container->get(TestServiceContract::class);
+        $second = $container->get(TestServiceContract::class);
+
+        $this->assertSame($first, $second);
+    }
+
+    public function testGetReturnsSameInstanceForMappedIdAndConcreteClass(): void
+    {
+        $container = new Container([
+            TestServiceContract::class => TestService::class,
+        ]);
+
+        $mapped = $container->get(TestServiceContract::class);
+        $concrete = $container->get(TestService::class);
+
+        $this->assertSame($mapped, $concrete);
+    }
+
     public function testGetResolvesConstructorDependenciesRecursively(): void
     {
         $container = new Container([

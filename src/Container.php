@@ -17,6 +17,11 @@ use Throwable;
 class Container implements ContainerInterface
 {
     /**
+     * @var array<string, object>
+     */
+    private array $instances = [];
+
+    /**
      * @param array<string, string> $map
      */
     public function __construct(private array $map = []) {}
@@ -42,6 +47,10 @@ class Container implements ContainerInterface
      */
     private function resolve(string $id, array $resolving): mixed
     {
+        if (isset($this->instances[$id])) {
+            return $this->instances[$id];
+        }
+
         if (in_array($id, $resolving, true)) {
             throw new ContainerException(sprintf('Circular dependency detected while resolving "%s".', $id));
         }
@@ -50,7 +59,12 @@ class Container implements ContainerInterface
 
         if (isset($this->map[$id])) {
             try {
-                return $this->resolve($this->map[$id], $resolving);
+                $instance = $this->resolve($this->map[$id], $resolving);
+                if (is_object($instance)) {
+                    $this->instances[$id] = $instance;
+                }
+
+                return $instance;
             } catch (NotFoundExceptionInterface $e) {
                 throw new ContainerException(
                     sprintf('Unable to resolve entry "%s" because mapped class "%s" was not found.', $id, $this->map[$id]),
@@ -72,7 +86,7 @@ class Container implements ContainerInterface
 
         $constructor = $reflectionClass->getConstructor();
         if ($constructor === null) {
-            return $this->instantiate($id);
+            return $this->instances[$id] = $this->instantiate($id);
         }
 
         $args = [];
@@ -80,7 +94,7 @@ class Container implements ContainerInterface
             $args[] = $this->resolveParameter($id, $param, $resolving);
         }
 
-        return $this->instantiate($id, $args);
+        return $this->instances[$id] = $this->instantiate($id, $args);
     }
 
     /**
