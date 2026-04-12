@@ -34,6 +34,9 @@
             "email": "takaram71@gmail.com"
         }
     ],
+    "provide": {
+        "psr/container-implementation": "^2.0"
+    },
     "config": {
         "sort-packages": true
     }
