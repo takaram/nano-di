@@ -1,0 +1,30 @@
+{
+    "name": "takaram/nano-di-benchmark",
+    "description": "Benchmarks for comparing nano-di against PHP-DI and league/container",
+    "type": "project",
+    "require": {
+        "php": ">=8.3",
+        "league/container": "^5.0",
+        "php-di/php-di": "^7.0",
+        "psr/container": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Takaram\\NanoDi\\": "../src/"
+        },
+        "classmap": [
+            "src/"
+        ]
+    },
+    "scripts": {
+        "bench": "XDEBUG_MODE=off phpbench run --report=aggregate",
+        "bench:quick": "XDEBUG_MODE=off phpbench run --report=aggregate --iterations=5 --revs=100 --warmup=1",
+        "bench:full": "XDEBUG_MODE=off phpbench run --report=aggregate --iterations=10 --revs=1000 --warmup=2"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "require-dev": {
+        "phpbench/phpbench": "^1.6"
+    }
+}
